@@ -1,9 +1,9 @@
-import identity from '../contracts/Idenitity.aes';
-import {Node, Universal, MemoryAccount} from '@aeternity/aepp-sdk/es';
-import {EventBus} from './eventBus';
+import { RpcAepp } from "@aeternity/aepp-sdk";
+import { MemoryAccount, Node, Universal } from '@aeternity/aepp-sdk/es';
 import BrowserWindowMessageConnection from "@aeternity/aepp-sdk/es/utils/aepp-wallet-communication/connection/browser-window-message";
 import Detector from "@aeternity/aepp-sdk/es/utils/aepp-wallet-communication/wallet-detector";
-import {RpcAepp} from "@aeternity/aepp-sdk";
+import identity from '../contracts/Idenitity.aes';
+import { EventBus } from './eventBus';
 
 const TESTNET_URL = 'https://testnet.aeternity.io';
 const MAINNET_URL = 'https://mainnet.aeternity.io';
@@ -26,9 +26,9 @@ aeternity.initProvider = async (changedClient = false) => {
   try {
     const networkId = (await aeternity.client.getNodeInfo()).nodeNetworkId;
     const changedNetwork = aeternity.networkId !== networkId;
-    aeternity.networkId = networkId
+    aeternity.networkId = networkId;
     if (aeternity.contractAddress)
-      aeternity.contract = await aeternity.client.getContractInstance(identity, {contractAddress: aeternity.contractAddress});
+      aeternity.contract = await aeternity.client.getContractInstance(identity, { contractAddress: aeternity.contractAddress });
     if (changedClient || changedNetwork) {
       EventBus.$emit('networkChange');
       EventBus.$emit('dataChange');
@@ -99,10 +99,10 @@ aeternity.isMainnet = () => {
 aeternity.initClient = async () => {
   if (process && process.env && process.env.PRIVATE_KEY && process.env.PUBLIC_KEY) {
     aeternity.client = await Universal({
-      nodes: [{name: 'testnet', instance: await Node({url: TESTNET_URL})}],
+      nodes: [{ name: 'testnet', instance: await Node({ url: TESTNET_URL }) }],
       compilerUrl: COMPILER_URL,
       accounts: [
-        MemoryAccount({keypair: {secretKey: process.env.PRIVATE_KEY, publicKey: process.env.PUBLIC_KEY}}),
+        MemoryAccount({ keypair: { secretKey: process.env.PRIVATE_KEY, publicKey: process.env.PUBLIC_KEY } }),
       ],
     });
     aeternity.static = false;
@@ -116,16 +116,7 @@ aeternity.initClient = async () => {
 aeternity.disconnect = async () => {
   await aeternity.rpcClient.disconnectWallet();
   await aeternity.scanForWallets();
-}
-
-aeternity.getReverseWindow = () => {
-  const iframe = document.createElement('iframe');
-  iframe.src = 'https://base.aepps.com/';
-  //iframe.src = 'https://localhost:8080/';
-  iframe.style.display = 'none';
-  document.body.appendChild(iframe);
-  return iframe.contentWindow;
-}
+};
 
 aeternity.scanForWallets = async (successCallback) => {
   const scannerConnection = await BrowserWindowMessageConnection({
@@ -144,20 +135,17 @@ aeternity.scanForWallets = async (successCallback) => {
   };
 
   detector.scan(handleWallets);
-}
+};
 
 aeternity.initWalletSearch = async (successCallback) => {
-  // Open iframe with Wallet if run in top window
-  // window !== window.parent || await aeternity.getReverseWindow();
-
   aeternity.rpcClient = await RpcAepp({
     name: 'AEPP',
     nodes: [
-      {name: 'ae_mainnet', instance: await Node({url: MAINNET_URL})},
-      {name: 'ae_uat', instance: await Node({url: TESTNET_URL})}
+      { name: 'ae_mainnet', instance: await Node({ url: MAINNET_URL }) },
+      { name: 'ae_uat', instance: await Node({ url: TESTNET_URL }) }
     ],
     compilerUrl: COMPILER_URL,
-    onNetworkChange (params) {
+    onNetworkChange(params) {
       this.selectNode(params.networkId); // params.networkId needs to be defined as node in RpcAepp
       aeternity.initProvider();
     },
@@ -170,6 +158,6 @@ aeternity.initWalletSearch = async (successCallback) => {
   });
 
   await aeternity.scanForWallets(successCallback);
-}
+};
 
 export default aeternity;

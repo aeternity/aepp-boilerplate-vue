@@ -50,13 +50,6 @@ custom pipeline.
 
 #### Easy wallet discovery
 
-The file `src/utils/aeternity.js` provides a sample implementation of a wallet discovery mechanism. This file should
-be reviewed by every developer for security reasons but should work as is. It will try to find the 
-[base-aepp](https://github.com/aeternity/aepp-base) first, if the application is loaded in an iframe. Otherwise it will
-mount the [base-aepp](https://github.com/aeternity/aepp-base) as an iframe. Finally it will initialize a client without
-keypair that allows for static calls to be made. If a wallet is loaded and with which priority should be configured in 
-this file. We will update this file in the future as new wallets appear. 
-
 [AEX-2](https://github.com/aeternity/AEXs/blob/master/AEXS/aex-2.md) is an extension proposal to standardize the wallet to
 aepp communication. As of this writing it has been withdrawn but is still the reference implementation provided by the js-sdk.
 Since we aim to make this boilerplate as universally connective as possible, we also implemented the client side protocol

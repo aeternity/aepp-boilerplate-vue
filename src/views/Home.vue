@@ -16,9 +16,9 @@
 <script>
   import aeternity from '../utils/aeternity'
   import axios from 'axios'
-  import {AeButton} from '@aeternity/aepp-components/src/components'
   import { EventBus } from '../utils/eventBus';
   import {AE_AMOUNT_FORMATS} from "@aeternity/aepp-sdk/es/utils/amount-formatter";
+  import { AeButton } from '@aeternity/aepp-components';
 
   export default {
     name: 'Home',
