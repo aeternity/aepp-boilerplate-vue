@@ -3,27 +3,41 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin');
 // Cleans dist folder before building for fresh build
-const {CleanWebpackPlugin} = require('clean-webpack-plugin');
-const {VueLoaderPlugin} = require('vue-loader');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const { VueLoaderPlugin } = require('vue-loader');
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin');
+const webpack = require('webpack');
 
 const distFolder = path.resolve(__dirname, 'dist');
 
 module.exports = {
+  target: ['web'],
+  output: {
+    assetModuleFilename: 'assets/[name].[ext]',
+    path: path.resolve(__dirname, 'dist')
+  },
   resolve: {
     extensions: ['.vue', '.css', '.js'],
     alias: {
+      process: 'process/browser',
       '~': path.resolve(__dirname, 'src')
+    },
+    fallback: {
+      fs: false,
+      stream: require.resolve("stream-browserify"),
+      path: require.resolve("path-browserify"),
+      crypto: require.resolve("crypto-browserify")
     }
-  },
-  node: {
-    fs: 'empty'
   },
   entry: {
     'main': path.resolve(__dirname, 'src/main.js')
   },
   plugins: [
+    new webpack.ProvidePlugin({
+      process: 'process/browser',
+      Buffer: ['buffer', 'Buffer'],
+    }),
     new HtmlWebpackPlugin({
       inject: true,
       // chunks: ['main'],
@@ -102,20 +116,11 @@ module.exports = {
       },
       {
         test: /\.aes$/,
-        use: [
-          'raw-loader',
-        ]
+        type: 'asset/source'
       },
       {
         test: /\.(woff(2)?|ttf|eot|svg|png)(\?v=\d+\.\d+\.\d+)?$/,
-        use: [{
-          loader: 'file-loader',
-          options: {
-            name: '[name].[ext]',
-            outputPath: './assets/',
-            esModule: false
-          }
-        }]
+        type: 'asset/resource'
       }
     ]
   }
