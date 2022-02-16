@@ -23,4 +23,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - run: npx cypress install
-      - run: npm test
+      - run: npm run test:e2e
+      - run: npm run test:unit

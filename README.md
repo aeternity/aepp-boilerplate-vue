@@ -18,7 +18,7 @@ npm install
 
 For development purposes (hot-reloading)
 ```
-npm run dev
+npm run serve
 ```
 
 To build the bundle for production
@@ -28,7 +28,7 @@ npm run build
 
 For running the integration tests
 ```
-npm run test
+npm run lint
 ```
 
 ## Main Features

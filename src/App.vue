@@ -1,56 +1,53 @@
 <template>
-  <div id="app" class="min-h-screen">
-    <div class="content min-h-screen max-w-desktop">
-      <div class="min-h-screen wrapper" ref="wrapper" v-if="foundWallet">
-        <router-view></router-view>
-      </div>
-      <div v-else>
-        Searching for wallet...
-      </div>
+    <div id="container">
+        <img alt="Aeternity" src="./assets/logo.svg" style="width: 250px" />
+        <h1>Welcome To Aeternity</h1>
+        <div id="nav">
+            <router-link to="/">Home</router-link> |
+            <router-link to="/about">About</router-link>
+        </div>
     </div>
-  </div>
+
+    <router-view />
 </template>
 
 <script>
-  import aeternity from './utils/aeternity.js'
+import { defineComponent, onMounted } from 'vue'
+import { aeInitWallet } from './utils/aeternity'
 
-  export default {
-    name: 'app',
-    data() {
-      return {
-        foundWallet: false
-      }
-    },
-    async created() {
-     aeternity.initClient().then(() => {
-        this.foundWallet = true;
-     });
+export default defineComponent({
+  name: 'App',
 
-      aeternity.initWalletSearch(() => {
-        this.foundWallet = true;
-      });
-    }
+  setup () {
+    onMounted(async () => {
+      await aeInitWallet()
+    })
   }
+})
 </script>
 
-<style scoped>
-  .min-h-screen {
-    min-height: 100vh;
-    max-height: 100vh;
-    padding-bottom: 0;
-    overflow-y: auto;
-    background-color: #f8f8f8;
-  }
+<style>
+#app {
+    font-family: Avenir, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-align: center;
+    color: #2c3e50;
+}
 
-  @media (min-width: 700px) {
-    #app {
-      position: relative;
-      display: flex;
-      justify-content: center;
-    }
+#container {
+  padding-top: 30px;
+}
+#nav {
+    padding: 30px;
+}
 
-    .content {
-      box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.15);
-    }
-  }
+#nav a {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+#nav a.router-link-exact-active {
+    color: #de3f6b;
+}
 </style>
