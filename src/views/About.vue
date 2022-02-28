@@ -1,7 +1,6 @@
 <template>
-    <div class="home">
-        <h1>Home Page</h1>
-
+    <div class="about">
+        <h1>About Page</h1>
         <WalletInfo />
     </div>
 </template>
@@ -9,7 +8,7 @@
 <script>
 import WalletInfo from '../components/WalletInfo.vue'
 export default {
-  name: 'Home',
+  name: 'About',
   components: { WalletInfo }
 }
 </script>
