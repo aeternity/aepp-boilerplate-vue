@@ -60,15 +60,15 @@ export const aeInitWallet = async () => {
         compilerUrl: COMPILER_URL,
         onNetworkChange (params) {
           this.selectNode(params.networkId)
-          aeFetchWalletInfo(sdk)
+          aeFetchWalletInfo()
         },
         onAddressChange (addresses) {
           console.info('onAddressChange :: ', addresses)
-          aeFetchWalletInfo(sdk)
+          aeFetchWalletInfo()
         },
       })
       walletStatus.value = 'connected'
-      await aeScanForWallets(sdk)
+      await aeScanForWallets()
     }
   } catch (error) {
     console.info('aeInitWallet . error: ', error)
