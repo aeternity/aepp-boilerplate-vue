@@ -30,7 +30,7 @@ export const aeInitClient = async () => {
   for (const { name, url } of NETWORKS) {
     nodes.push({
       name,
-      instance: new Node({ url })
+      instance: new Node(url)
     })
   }
 
