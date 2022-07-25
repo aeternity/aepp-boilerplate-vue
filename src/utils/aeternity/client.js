@@ -1,10 +1,11 @@
-import { Node, Universal } from '@aeternity/aepp-sdk'
+import { Node, AeSdk } from '@aeternity/aepp-sdk'
 import { reactive, toRefs } from 'vue'
 import { COMPILER_URL, NETWORKS } from './configs'
 import identity from './contracts/Idenitity.aes'
 
+export let sdk = null
+
 export const aeClient = reactive({
-  sdk: null,
   isConnecting: false,
   isConnected: false,
   isStatic: false,
@@ -20,7 +21,7 @@ export const aeClient = reactive({
  * @returns {Promise<boolean>}
  */
 export const aeInitClient = async () => {
-  const { sdk, isConnected, isConnecting, isStatic } = toRefs(aeClient)
+  const { isConnected, isConnecting, isStatic } = toRefs(aeClient)
 
   isConnecting.value = true
 
@@ -29,11 +30,11 @@ export const aeInitClient = async () => {
   for (const { name, url } of NETWORKS) {
     nodes.push({
       name,
-      instance: await Node({ url })
+      instance: new Node({ url })
     })
   }
 
-  sdk.value = await Universal({
+  sdk = new AeSdk({
     nodes: nodes,
     compilerUrl: COMPILER_URL
   })
@@ -51,12 +52,12 @@ export const aeInitClient = async () => {
  * @returns {Promise<boolean>}
  */
 export const aeInitProvider = async () => {
-  const { sdk, networkId, contract, contractAddress } = toRefs(aeClient)
+  const { networkId, contract, contractAddress } = toRefs(aeClient)
   try {
-    networkId.value = (await sdk.value.getNodeInfo()).nodeNetworkId
+    networkId.value = (await sdk.getNodeInfo()).nodeNetworkId
 
     if (contractAddress.value) {
-      contract.value = await sdk.value.getContractInstance(identity, {
+      contract.value = await sdk.getContractInstance(identity, {
         contractAddress: contractAddress.value
       })
     }

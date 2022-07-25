@@ -1,34 +1,35 @@
 import {
-  RpcAepp,
+  AeSdkAepp,
   Node,
   BrowserWindowMessageConnection,
-  WalletDetector,
-  AmountFormatter,
-  Universal,
-  MemoryAccount
+  AE_AMOUNT_FORMATS,
+  AeSdk,
+  walletDetector,
+  MemoryAccount,
 } from '@aeternity/aepp-sdk'
 
 import { reactive, toRefs } from 'vue'
 import { COMPILER_URL, NETWORKS } from './configs'
 
+export let sdk = null
+
 export const aeWallet = reactive({
-  sdk: null,
   activeWallet: null,
   address: null,
   balance: null,
   walletStatus: null,
-  isStatic: false
+  isStatic: false,
 })
 
 export const aeInitWallet = async () => {
-  const { sdk, walletStatus } = toRefs(aeWallet)
+  const { walletStatus } = toRefs(aeWallet)
 
   const nodes = []
 
   for (const { type, url } of NETWORKS) {
     nodes.push({
       name: type,
-      instance: await Node({ url })
+      instance: new Node(url),
     })
   }
 
@@ -38,36 +39,36 @@ export const aeInitWallet = async () => {
     const { VUE_APP_WALLET_SECRET_KEY, VUE_APP_WALLET_PUBLIC_KEY } = process.env
     // connect to static Wallet
     if (VUE_APP_WALLET_SECRET_KEY && VUE_APP_WALLET_PUBLIC_KEY) {
-      const account = MemoryAccount({
-        keypair: { secretKey: VUE_APP_WALLET_SECRET_KEY, publicKey: VUE_APP_WALLET_PUBLIC_KEY }
+      const account = new MemoryAccount({
+        keypair: { secretKey: VUE_APP_WALLET_SECRET_KEY, publicKey: VUE_APP_WALLET_PUBLIC_KEY },
       })
 
-      const client = await Universal({
+      const client = new AeSdk({
         compilerUrl: COMPILER_URL,
         nodes,
-        accounts: [account]
+        accounts: [account],
       })
-      sdk.value = client
+      sdk = client
 
       walletStatus.value = 'connected'
       await aeFetchWalletInfo(client)
     } else {
       // connect to Superhero Wallet
-      sdk.value = await RpcAepp({
+      sdk = new AeSdkAepp({
         name: 'AEPP',
         nodes,
         compilerUrl: COMPILER_URL,
         onNetworkChange (params) {
           this.selectNode(params.networkId)
-          aeFetchWalletInfo(sdk.value)
+          aeFetchWalletInfo(sdk)
         },
         onAddressChange (addresses) {
           console.info('onAddressChange :: ', addresses)
-          aeFetchWalletInfo(sdk.value)
-        }
+          aeFetchWalletInfo(sdk)
+        },
       })
       walletStatus.value = 'connected'
-      await aeScanForWallets()
+      await aeScanForWallets(sdk)
     }
   } catch (error) {
     console.info('aeInitWallet . error: ', error)
@@ -77,36 +78,31 @@ export const aeInitWallet = async () => {
 }
 
 export const aeScanForWallets = async () => {
-  const { sdk, walletStatus, activeWallet } = toRefs(aeWallet)
+  const { walletStatus, activeWallet } = toRefs(aeWallet)
 
   walletStatus.value = 'scanning'
 
-  const scannerConnection = await BrowserWindowMessageConnection({
-    connectionInfo: { id: 'spy' }
+  return new Promise((resolve) => {
+    const handleWallets = async ({ wallets, newWallet }) => {
+      newWallet = newWallet || Object.values(wallets)[0]
+      stopScan()
+      if (!sdk) return
+
+      activeWallet.value = newWallet
+      const { networkId } = await sdk.connectToWallet(newWallet.getConnection())
+      sdk.selectNode(networkId)
+      await sdk.subscribeAddress('subscribe', 'current')
+
+      await aeFetchWalletInfo()
+
+      resolve()
+    }
+    const scannerConnection = new BrowserWindowMessageConnection()
+    const stopScan = walletDetector(scannerConnection, handleWallets)
   })
-  const detector = await WalletDetector({ connection: scannerConnection })
-
-  const handleWallets = async function ({ newWallet }) {
-    detector.stopScan()
-    if (!sdk.value) return
-
-    activeWallet.value = newWallet
-
-    const connected = await sdk.value.connectToWallet(
-      await newWallet.getConnection()
-    )
-    sdk.value.selectNode(connected.networkId) // connected.networkId needs to be defined as node in RpcAepp
-    await sdk.value.subscribeAddress('subscribe', 'current')
-
-    await aeFetchWalletInfo(sdk.value)
-  }
-
-  await detector.scan(handleWallets)
-
-  return Object.values(detector.wallets).length
 }
 
-export const aeFetchWalletInfo = async (sdk)  => {
+export const aeFetchWalletInfo = async () => {
   const { address, balance, walletStatus } = toRefs(aeWallet)
 
   walletStatus.value = 'fetching_info'
@@ -115,7 +111,7 @@ export const aeFetchWalletInfo = async (sdk)  => {
     address.value = await sdk.address()
 
     balance.value = await sdk.getBalance(address.value, {
-      format: AmountFormatter.AE_AMOUNT_FORMATS.AE
+      format: AE_AMOUNT_FORMATS.AE,
     })
 
     walletStatus.value = null

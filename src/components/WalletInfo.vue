@@ -4,9 +4,9 @@
 
     <div v-if="address && !walletStatus" class="wallet-info">
       <div v-if="activeWallet">
-        <strong>Provider :: </strong> {{ activeWallet.name }}
+        <strong>Provider :: </strong> {{ activeWallet.info.name }}
         <br />
-        <strong>Network ID :: </strong> {{ activeWallet.networkId }}
+        <strong>Network ID :: </strong> {{ activeWallet.info.networkId }}
         <br />
       </div>
       <strong>Address :: </strong> <span class="wallet-address">{{ address }}</span>
