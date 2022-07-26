@@ -110,7 +110,7 @@ export const aeFetchWalletInfo = async () => {
     balance.value = await sdk.getBalance(address.value, {
       format: AE_AMOUNT_FORMATS.AE,
     })
-    walletStatus.value = null
+    walletStatus.value = 'connected'
     return true
   } catch (error) {
     walletStatus.value = 'fetching_failed'
