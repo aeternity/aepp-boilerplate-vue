@@ -1,12 +1,11 @@
 <template>
   <div class="wallet">
     <div v-if="walletStatus"><strong>Wallet Status :: </strong> {{ walletStatus }}</div>
-
     <div v-if="address && !walletStatus" class="wallet-info">
       <div v-if="activeWallet">
         <strong>Provider :: </strong> {{ activeWallet.info.name }}
         <br />
-        <strong>Network ID :: </strong> {{ activeWallet.info.networkId }}
+        <strong>Network ID :: </strong> {{ networkId }}
         <br />
       </div>
       <strong>Address :: </strong> <span class="wallet-address">{{ address }}</span>
@@ -29,9 +28,9 @@ import { aeWallet } from '../utils/aeternity'
 export default defineComponent({
   name: 'WalletInfo',
   setup () {
-    const { address, balance, walletStatus, activeWallet } = toRefs(aeWallet)
+    const { address, balance, walletStatus, activeWallet, networkId } = toRefs(aeWallet)
 
-    return { activeWallet, address, balance, walletStatus }
+    return { activeWallet, address, balance, walletStatus, networkId }
   }
 })
 </script>

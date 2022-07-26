@@ -19,10 +19,11 @@ export const aeWallet = reactive({
   balance: null,
   walletStatus: null,
   isStatic: false,
+  networkId: null,
 })
 
 export const aeInitWallet = async () => {
-  const { walletStatus } = toRefs(aeWallet)
+  const { walletStatus, networkId } = toRefs(aeWallet)
 
   const nodes = []
 
@@ -58,13 +59,15 @@ export const aeInitWallet = async () => {
         name: 'AEPP',
         nodes,
         compilerUrl: COMPILER_URL,
-        onNetworkChange (params) {
-          this.selectNode(params.networkId)
-          aeFetchWalletInfo()
+        onNetworkChange: async (params) => {
+          console.log('params', params)
+          networkId.value = params.networkId
+          sdk.selectNode(params.networkId)
+          await aeFetchWalletInfo()
         },
-        onAddressChange (addresses) {
+        onAddressChange: async (addresses) => {
           console.info('onAddressChange :: ', addresses)
-          aeFetchWalletInfo()
+          await aeFetchWalletInfo()
         },
       })
       walletStatus.value = 'connected'
@@ -78,7 +81,7 @@ export const aeInitWallet = async () => {
 }
 
 export const aeScanForWallets = async () => {
-  const { walletStatus, activeWallet } = toRefs(aeWallet)
+  const { walletStatus, activeWallet, networkId } = toRefs(aeWallet)
 
   walletStatus.value = 'scanning'
 
@@ -89,9 +92,12 @@ export const aeScanForWallets = async () => {
       if (!sdk) return
 
       activeWallet.value = newWallet
-      const { networkId } = await sdk.connectToWallet(newWallet.getConnection())
-      sdk.selectNode(networkId)
+
+      const connected = await sdk.connectToWallet(newWallet.getConnection())
+      networkId.value = connected.networkId
+
       await sdk.subscribeAddress('subscribe', 'current')
+      sdk.selectNode(connected.networkId)
 
       await aeFetchWalletInfo()
 
@@ -113,7 +119,6 @@ export const aeFetchWalletInfo = async () => {
     balance.value = await sdk.getBalance(address.value, {
       format: AE_AMOUNT_FORMATS.AE,
     })
-
     walletStatus.value = null
     return true
   } catch (error) {
