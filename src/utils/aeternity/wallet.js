@@ -57,7 +57,6 @@ export const aeInitWallet = async () => {
         compilerUrl: COMPILER_URL,
         onNetworkChange: async ({ networkId }) => {
           await aeConnectToNode(networkId)
-          await aeFetchWalletInfo()
         },
         onAddressChange: async (addresses) => {
           console.info('onAddressChange :: ', addresses)
@@ -91,7 +90,7 @@ export const aeScanForWallets = async () => {
       await sdk.subscribeAddress('subscribe', 'current')
 
       await aeConnectToNode(networkId)
-      await aeFetchWalletInfo()
+
 
       resolve()
     }
@@ -121,15 +120,14 @@ export const aeFetchWalletInfo = async () => {
 }
 
 export const aeConnectToNode = async (selectedNetworkId) => {
-  const { networkId } = toRefs(aeWallet)
+  const { networkId, walletStatus } = toRefs(aeWallet)
   const defaultNetworkId = process.env.VUE_APP_TYPE
-
   if (selectedNetworkId === defaultNetworkId) {
     networkId.value = selectedNetworkId
     sdk.selectNode(selectedNetworkId)
+    await aeFetchWalletInfo()
   } else {
-    alert(`Wrong network selected. This environment only supports ${defaultNetworkId}.
-    Please connect back to ${defaultNetworkId} or serve app with different command`)
+    walletStatus.value = `Connected to wrong network. Please switch to ${process.env.VUE_APP_NAME} in your wallet.`
     networkId.value = defaultNetworkId
     sdk.selectNode(defaultNetworkId)
   }
