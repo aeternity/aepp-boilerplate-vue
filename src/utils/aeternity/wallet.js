@@ -9,7 +9,7 @@ import {
 } from '@aeternity/aepp-sdk'
 
 import { reactive, toRefs } from 'vue'
-import { COMPILER_URL, NETWORKS } from './configs'
+import { COMPILER_URL } from './configs'
 
 export let sdk = null
 
@@ -23,16 +23,12 @@ export const aeWallet = reactive({
 })
 
 export const aeInitWallet = async () => {
-  const { walletStatus, networkId } = toRefs(aeWallet)
+  const { walletStatus } = toRefs(aeWallet)
 
-  const nodes = []
-
-  for (const { type, url } of NETWORKS) {
-    nodes.push({
-      name: type,
-      instance: new Node(url),
-    })
-  }
+  const nodes = [{
+    name: process.env.VUE_APP_TYPE,
+    instance: new Node(process.env.VUE_APP_URL),
+  }]
 
   walletStatus.value = 'connecting'
 
@@ -59,10 +55,8 @@ export const aeInitWallet = async () => {
         name: 'AEPP',
         nodes,
         compilerUrl: COMPILER_URL,
-        onNetworkChange: async (params) => {
-          console.log('params', params)
-          networkId.value = params.networkId
-          sdk.selectNode(params.networkId)
+        onNetworkChange: async ({ networkId }) => {
+          await aeConnectToNode(networkId)
           await aeFetchWalletInfo()
         },
         onAddressChange: async (addresses) => {
@@ -81,7 +75,7 @@ export const aeInitWallet = async () => {
 }
 
 export const aeScanForWallets = async () => {
-  const { walletStatus, activeWallet, networkId } = toRefs(aeWallet)
+  const { walletStatus, activeWallet } = toRefs(aeWallet)
 
   walletStatus.value = 'scanning'
 
@@ -93,12 +87,10 @@ export const aeScanForWallets = async () => {
 
       activeWallet.value = newWallet
 
-      const connected = await sdk.connectToWallet(newWallet.getConnection())
-      networkId.value = connected.networkId
-
+      const { networkId } = await sdk.connectToWallet(newWallet.getConnection())
       await sdk.subscribeAddress('subscribe', 'current')
-      sdk.selectNode(connected.networkId)
 
+      await aeConnectToNode(networkId)
       await aeFetchWalletInfo()
 
       resolve()
@@ -127,3 +119,19 @@ export const aeFetchWalletInfo = async () => {
     return false
   }
 }
+
+export const aeConnectToNode = async (selectedNetworkId) => {
+  const { networkId } = toRefs(aeWallet)
+  const defaultNetworkId = process.env.VUE_APP_TYPE
+
+  if (selectedNetworkId === defaultNetworkId) {
+    networkId.value = selectedNetworkId
+    sdk.selectNode(selectedNetworkId)
+  } else {
+    alert(`Wrong network selected. This environment only supports ${defaultNetworkId}.
+    Please connect back to ${defaultNetworkId} or serve app with different command`)
+    networkId.value = defaultNetworkId
+    sdk.selectNode(defaultNetworkId)
+  }
+}
+

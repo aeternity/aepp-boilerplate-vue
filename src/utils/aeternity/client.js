@@ -1,6 +1,6 @@
 import { Node, AeSdk } from '@aeternity/aepp-sdk'
 import { reactive, toRefs } from 'vue'
-import { COMPILER_URL, NETWORKS } from './configs'
+import { COMPILER_URL } from './configs'
 import identity from './contracts/Idenitity.aes'
 
 export let sdk = null
@@ -25,14 +25,10 @@ export const aeInitClient = async () => {
 
   isConnecting.value = true
 
-  const nodes = []
-
-  for (const { name, url } of NETWORKS) {
-    nodes.push({
-      name,
-      instance: new Node(url)
-    })
-  }
+  const nodes = [{
+    name: process.env.VUE_APP_TYPE,
+    instance: new Node(process.env.VUE_APP_URL),
+  }]
 
   sdk = new AeSdk({
     nodes: nodes,
