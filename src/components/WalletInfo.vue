@@ -25,19 +25,24 @@
   </div>
 </template>
 
-<script setup>
-import { toRefs } from 'vue'
+<script>
+import { defineComponent, toRefs } from 'vue'
 import { aeWallet } from '../utils/aeternity'
 
-// probably needs deps upgrading deps
-// eslint-disable-next-line
-const { address, balance, walletStatus, activeWallet, networkId } = toRefs(aeWallet)
+export default defineComponent({
+  name: 'WalletInfo',
+  setup () {
+    const { address, balance, walletStatus, activeWallet, networkId } = toRefs(aeWallet)
+
+    return { address, balance, walletStatus, activeWallet, networkId }
+  }
+})
 </script>
 
 <style scoped>
 .wallet {
   margin: 0 auto;
-  max-width: 600px;
+  max-width: 620px;
 
   border: 2px solid #de3f6b;
   border-radius: 15px;
