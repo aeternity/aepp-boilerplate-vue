@@ -13,7 +13,7 @@ import { COMPILER_URL } from './configs'
 
 export let sdk = null
 
-export const aeWallet = reactive({
+export const wallet = reactive({
   activeWallet: null,
   address: null,
   balance: null,
@@ -22,8 +22,8 @@ export const aeWallet = reactive({
   networkId: null,
 })
 
-export const aeInitWallet = async () => {
-  const { walletStatus } = toRefs(aeWallet)
+export const initWallet = async () => {
+  const { walletStatus } = toRefs(wallet)
 
   const nodes = [{
     name: process.env.VUE_APP_TYPE,
@@ -48,7 +48,7 @@ export const aeInitWallet = async () => {
       sdk = client
 
       walletStatus.value = 'connected'
-      await aeFetchWalletInfo(client)
+      await fetchWalletInfo(client)
     } else {
       // connect to Superhero Wallet
       sdk = new AeSdkAepp({
@@ -60,21 +60,20 @@ export const aeInitWallet = async () => {
         },
         onAddressChange: async (addresses) => {
           console.info('onAddressChange :: ', addresses)
-          await aeFetchWalletInfo()
+          await fetchWalletInfo()
         },
       })
-      walletStatus.value = 'connected'
-      await aeScanForWallets()
+      await scanForWallets()
     }
   } catch (error) {
-    console.info('aeInitWallet . error: ', error)
+    console.info('initWallet . error: ', error)
     return false
   }
   return true
 }
 
-export const aeScanForWallets = async () => {
-  const { walletStatus, activeWallet } = toRefs(aeWallet)
+export const scanForWallets = async () => {
+  const { walletStatus, activeWallet } = toRefs(wallet)
 
   walletStatus.value = 'scanning'
 
@@ -99,8 +98,8 @@ export const aeScanForWallets = async () => {
   })
 }
 
-export const aeFetchWalletInfo = async () => {
-  const { address, balance, walletStatus } = toRefs(aeWallet)
+export const fetchWalletInfo = async () => {
+  const { address, balance, walletStatus } = toRefs(wallet)
 
   walletStatus.value = 'fetching_info'
 
@@ -110,22 +109,22 @@ export const aeFetchWalletInfo = async () => {
     balance.value = await sdk.getBalance(address.value, {
       format: AE_AMOUNT_FORMATS.AE,
     })
-    walletStatus.value = null
+    walletStatus.value = 'connected'
     return true
   } catch (error) {
-    walletStatus.value = 'fetching_failed'
-    console.info('aeFetchWalletInfo error::', error)
+    walletStatus.value = 'fetching failed'
+    console.info('fetchWalletInfo error::', error)
     return false
   }
 }
 
 export const aeConnectToNode = async (selectedNetworkId) => {
-  const { networkId, walletStatus } = toRefs(aeWallet)
+  const { networkId, walletStatus } = toRefs(wallet)
   const defaultNetworkId = process.env.VUE_APP_TYPE
   if (selectedNetworkId === defaultNetworkId) {
     networkId.value = selectedNetworkId
     sdk.selectNode(selectedNetworkId)
-    await aeFetchWalletInfo()
+    await fetchWalletInfo()
   } else {
     walletStatus.value = `Connected to wrong network. Please switch to ${process.env.VUE_APP_NAME} in your wallet.`
     networkId.value = defaultNetworkId

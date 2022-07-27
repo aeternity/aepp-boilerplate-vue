@@ -13,14 +13,14 @@
 
 <script>
 import { defineComponent, onMounted } from 'vue'
-import { aeInitWallet } from './utils/aeternity'
+import { initWallet } from './utils/aeternity'
 
 export default defineComponent({
   name: 'App',
 
   setup () {
     onMounted(async () => {
-      await aeInitWallet()
+      await initWallet()
     })
   }
 })
