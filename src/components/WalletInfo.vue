@@ -27,12 +27,12 @@
 
 <script>
 import { defineComponent, toRefs } from 'vue'
-import { aeWallet } from '../utils/aeternity'
+import { wallet } from '../utils/aeternity'
 
 export default defineComponent({
   name: 'WalletInfo',
   setup () {
-    const { address, balance, walletStatus, activeWallet, networkId } = toRefs(aeWallet)
+    const { address, balance, walletStatus, activeWallet, networkId } = toRefs(wallet)
 
     return { address, balance, walletStatus, activeWallet, networkId }
   }

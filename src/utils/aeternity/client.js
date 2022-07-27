@@ -5,7 +5,7 @@ import identity from './contracts/Idenitity.aes'
 
 export let sdk = null
 
-export const aeClient = reactive({
+export const client = reactive({
   isConnecting: false,
   isConnected: false,
   isStatic: false,
@@ -20,8 +20,8 @@ export const aeClient = reactive({
  * This client can not sign transactions that require funds (everything except static contract calls)
  * @returns {Promise<boolean>}
  */
-export const aeInitClient = async () => {
-  const { isConnected, isConnecting, isStatic } = toRefs(aeClient)
+export const initClient = async () => {
+  const { isConnected, isConnecting, isStatic } = toRefs(client)
 
   isConnecting.value = true
 
@@ -39,7 +39,7 @@ export const aeInitClient = async () => {
   isConnected.value = true
   isConnecting.value = false
 
-  return await aeInitProvider()
+  return await initProvider()
 }
 
 /**
@@ -47,8 +47,8 @@ export const aeInitClient = async () => {
  * basic values from the wallet.
  * @returns {Promise<boolean>}
  */
-export const aeInitProvider = async () => {
-  const { networkId, contract, contractAddress } = toRefs(aeClient)
+export const initProvider = async () => {
+  const { networkId, contract, contractAddress } = toRefs(client)
   try {
     networkId.value = (await sdk.getNodeInfo()).nodeNetworkId
 
