@@ -3,7 +3,7 @@ import { reactive, toRefs } from 'vue'
 import { COMPILER_URL } from './configs'
 import identity from './contracts/Idenitity.aes'
 
-export let sdk = null
+export let clientSdk = null
 
 export const client = reactive({
   isConnecting: false,
@@ -30,7 +30,7 @@ export const initClient = async () => {
     instance: new Node(process.env.VUE_APP_URL),
   }]
 
-  sdk = new AeSdk({
+  clientSdk = new AeSdk({
     nodes: nodes,
     compilerUrl: COMPILER_URL
   })
@@ -50,10 +50,10 @@ export const initClient = async () => {
 export const initProvider = async () => {
   const { networkId, contract, contractAddress } = toRefs(client)
   try {
-    networkId.value = (await sdk.getNodeInfo()).nodeNetworkId
+    networkId.value = (await clientSdk.getNodeInfo()).nodeNetworkId
 
     if (contractAddress.value) {
-      contract.value = await sdk.getContractInstance(identity, {
+      contract.value = await clientSdk.getContractInstance(identity, {
         contractAddress: contractAddress.value
       })
     }
