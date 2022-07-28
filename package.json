@@ -25,7 +25,6 @@
     "@vue/cli-plugin-router": "~5.0.8",
     "@vue/cli-plugin-unit-jest": "~5.0.8",
     "@vue/cli-service": "~5.0.8",
-    "@vue/compiler-sfc": "^3.2.37",
     "@vue/eslint-config-standard": "^8.0.0",
     "@vue/eslint-plugin": "^4.2.0",
     "@vue/test-utils": "^2.0.2",
