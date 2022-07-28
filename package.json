@@ -2,9 +2,9 @@
   "name": "aepp-boilerplate",
   "version": "0.1.0",
   "scripts": {
-    "serve": "npm run serve-testnet",
-    "serve-testnet": "vue-cli-service serve --mode development",
-    "serve-mainnet": "vue-cli-service serve --mode production",
+    "serve": "npm run serve:testnet",
+    "serve:testnet": "vue-cli-service serve --mode development",
+    "serve:mainnet": "vue-cli-service serve --mode production",
     "build": "vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e --mode e2e",
