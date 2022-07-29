@@ -7,7 +7,7 @@
     "serve:mainnet": "vue-cli-service serve --mode production",
     "build": "vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
-    "test:e2e": "vue-cli-service test:e2e --mode e2e",
+    "test:e2e": "vue-cli-service test:e2e --headless --mode e2e",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
@@ -26,11 +26,13 @@
     "@vue/cli-plugin-unit-jest": "~5.0.8",
     "@vue/cli-service": "~5.0.8",
     "@vue/test-utils": "^2.0.2",
+    "@vue/vue3-jest": "^27.0.0",
+    "cypress": "^9.7.0",
+    "dotenv": "^16.0.1",
     "eslint": "^8.20.0",
     "eslint-plugin-vue": "^9.3.0",
     "file-loader": "^6.2.0",
-    "lint-staged": "^13.0.3",
-    "vue-jest": "^5.0.0-0"
+    "lint-staged": "^13.0.3"
   },
   "browserslist": [
     "> 1%",
