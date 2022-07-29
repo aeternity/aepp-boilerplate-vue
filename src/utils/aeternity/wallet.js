@@ -43,8 +43,9 @@ export const initWallet = async () => {
       const client = new AeSdk({
         compilerUrl: COMPILER_URL,
         nodes,
-        accounts: [account],
       })
+
+      await client.addAccount(account, {select: true})
       sdk = client
 
       walletStatus.value = 'connected'
