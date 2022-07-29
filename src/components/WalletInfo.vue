@@ -12,7 +12,7 @@
       </template>
       <strong>Network ID :: </strong> {{ networkId }}
         <br/>
-      <strong>Address :: </strong> {{ address }}
+      <strong>Address :: </strong> <span class="wallet-address">{{ address }}</span>
       <br/>
       <strong>Balance :: </strong> {{ balance }} AE
     </template>

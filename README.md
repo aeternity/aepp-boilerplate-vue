@@ -12,22 +12,22 @@ Clone repo via git or use the template button above.
 
 Install the dependencies
 ```
-yarn install
+npm install
 ```
 
 For development purposes (hot-reloading)
 ```
-yarn serve
+npm run serve
 ```
 
 To build the bundle for production
 ```
-yarn build
+npm run build
 ```
 
 For running the integration tests
 ```
-yarn lint
+npm run lint
 ```
 
 ## Prerequisites
