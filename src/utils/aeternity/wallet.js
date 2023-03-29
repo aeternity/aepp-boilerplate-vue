@@ -66,10 +66,9 @@ export const initWallet = async () => {
       await scanForWallets()
     }
   } catch (error) {
-    console.info('initWallet . error: ', error)
-    return false
+    walletStatus.value = 'failed';
+    throw error;
   }
-  return true
 }
 
 export const scanForWallets = async () => {
