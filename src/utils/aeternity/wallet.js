@@ -26,8 +26,8 @@ export const initWallet = async () => {
   const { walletStatus } = toRefs(wallet)
 
   const nodes = [{
-    name: process.env.VUE_APP_TYPE,
-    instance: new Node(process.env.VUE_APP_URL),
+    name: process.env.VUE_APP_NETWORK_ID,
+    instance: new Node(process.env.VUE_APP_NODE_URL),
   }]
 
   walletStatus.value = 'connecting'
@@ -121,13 +121,13 @@ export const fetchWalletInfo = async () => {
 
 export const aeConnectToNode = async (selectedNetworkId) => {
   const { networkId, walletStatus } = toRefs(wallet)
-  const defaultNetworkId = process.env.VUE_APP_TYPE
+  const defaultNetworkId = process.env.VUE_APP_NETWORK_ID
   if (selectedNetworkId === defaultNetworkId) {
     networkId.value = selectedNetworkId
     sdk.selectNode(selectedNetworkId)
     await fetchWalletInfo()
   } else {
-    walletStatus.value = `Connected to wrong network. Please switch to ${process.env.VUE_APP_NAME} in your wallet.`
+    walletStatus.value = `Connected to wrong network. Please switch to ${process.env.VUE_APP_NETWORK_NAME} in your wallet.`
     networkId.value = defaultNetworkId
     sdk.selectNode(defaultNetworkId)
   }
