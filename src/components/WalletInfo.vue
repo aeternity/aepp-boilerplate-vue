@@ -27,7 +27,7 @@
 
 <script>
 import { defineComponent, toRefs } from 'vue'
-import { wallet } from '../utils/aeternity'
+import { wallet } from '../utils/aeternity/wallet'
 
 export default defineComponent({
   name: 'WalletInfo',
