@@ -9,7 +9,6 @@ import {
 } from '@aeternity/aepp-sdk'
 
 import { reactive, toRefs } from 'vue'
-import { COMPILER_URL } from './configs'
 
 export let sdk = null
 
@@ -41,7 +40,7 @@ export const initWallet = async () => {
       })
 
       const client = new AeSdk({
-        compilerUrl: COMPILER_URL,
+        compilerUrl: process.env.COMPILER_URL,
         nodes,
       })
 
@@ -55,7 +54,7 @@ export const initWallet = async () => {
       sdk = new AeSdkAepp({
         name: 'AEPP',
         nodes,
-        compilerUrl: COMPILER_URL,
+        compilerUrl: process.env.COMPILER_URL,
         onNetworkChange: async ({ networkId }) => {
           await aeConnectToNode(networkId)
         },
