@@ -73,59 +73,40 @@ export const initWallet = async () => {
 
 const scanForWallets = async () => {
   const { walletStatus, activeWallet } = toRefs(wallet)
-
   walletStatus.value = 'scanning'
 
-  return new Promise((resolve) => {
-    const handleWallets = async ({ wallets, newWallet }) => {
-      newWallet = newWallet || Object.values(wallets)[0]
+  const foundWallet = await new Promise((resolve) => {
+    const handleWallets = async ({ newWallet }) => {
       stopScan()
-      if (!sdk) return
-
-      activeWallet.value = newWallet
-
-      const { networkId } = await sdk.connectToWallet(newWallet.getConnection())
-      await sdk.subscribeAddress('subscribe', 'current')
-
-      await connectToNode(networkId)
-
-      resolve()
+      resolve(newWallet)
     }
     const scannerConnection = new BrowserWindowMessageConnection()
     const stopScan = walletDetector(scannerConnection, handleWallets)
-  })
+  });
+
+  activeWallet.value = foundWallet
+  const { networkId } = await sdk.connectToWallet(foundWallet.getConnection())
+  await sdk.subscribeAddress('subscribe', 'current')
+  await connectToNode(networkId)
 }
 
 const fetchAccountInfo = async () => {
   const { address, balance, walletStatus } = toRefs(wallet)
-
   walletStatus.value = 'fetching_info'
-
-  try {
-    address.value = await sdk.address()
-
-    balance.value = await sdk.getBalance(address.value, {
-      format: AE_AMOUNT_FORMATS.AE,
-    })
-    walletStatus.value = 'connected'
-    return true
-  } catch (error) {
-    walletStatus.value = 'fetching failed'
-    console.info('fetchAccountInfo error::', error)
-    return false
-  }
+  address.value = await sdk.address()
+  balance.value = await sdk.getBalance(address.value, {
+    format: AE_AMOUNT_FORMATS.AE,
+  })
+  walletStatus.value = 'connected'
 }
 
 const connectToNode = async (selectedNetworkId) => {
   const { networkId, walletStatus } = toRefs(wallet)
-  const defaultNetworkId = process.env.VUE_APP_NETWORK_ID
-  if (selectedNetworkId === defaultNetworkId) {
-    networkId.value = selectedNetworkId
-    sdk.selectNode(selectedNetworkId)
-    await fetchAccountInfo()
-  } else {
+  if (selectedNetworkId !== process.env.VUE_APP_NETWORK_ID) {
     walletStatus.value = `Connected to wrong network. Please switch to ${process.env.VUE_APP_NETWORK_NAME} in your wallet.`
-    networkId.value = defaultNetworkId
-    sdk.selectNode(defaultNetworkId)
+    return
   }
+  networkId.value = selectedNetworkId
+  sdk.selectNode(selectedNetworkId)
+  await fetchAccountInfo()
 }
