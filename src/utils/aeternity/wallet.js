@@ -8,30 +8,29 @@ import {
   MemoryAccount,
 } from '@aeternity/aepp-sdk'
 
-import { reactive, toRefs } from 'vue'
+import { reactive, toRefs, shallowReactive } from 'vue'
 
-let sdk = null
-
-export const wallet = reactive({
-  activeWallet: null,
+export const state = reactive({
+  walletInfo: null,
+  aeSdk: null,
   address: null,
   balance: null,
-  walletStatus: null,
-  isStatic: false,
-  networkId: null,
+  status: 'connecting',
+  networkId: process.env.VUE_APP_NETWORK_ID,
 })
 
 export const initWallet = async () => {
-  const { walletStatus } = toRefs(wallet)
-
-  const nodes = [{
-    name: process.env.VUE_APP_NETWORK_ID,
-    instance: new Node(process.env.VUE_APP_NODE_URL),
-  }]
-
-  walletStatus.value = 'connecting'
+  const { status, aeSdk } = toRefs(state)
 
   try {
+    const aeSdkOptions = {
+      nodes: [{
+        name: process.env.VUE_APP_NETWORK_ID,
+        instance: new Node(process.env.VUE_APP_NODE_URL),
+      }],
+      compilerUrl: process.env.COMPILER_URL,
+    }
+
     const { VUE_APP_WALLET_SECRET_KEY, VUE_APP_WALLET_PUBLIC_KEY } = process.env
     // connect to static Wallet
     if (VUE_APP_WALLET_SECRET_KEY && VUE_APP_WALLET_PUBLIC_KEY) {
@@ -39,41 +38,37 @@ export const initWallet = async () => {
         keypair: { secretKey: VUE_APP_WALLET_SECRET_KEY, publicKey: VUE_APP_WALLET_PUBLIC_KEY },
       })
 
-      const client = new AeSdk({
-        compilerUrl: process.env.COMPILER_URL,
-        nodes,
-      })
+      // AeSdk instance can't be in deep reactive https://stackoverflow.com/a/69010240
+      aeSdk.value = shallowReactive(new AeSdk(aeSdkOptions))
+      
+      await aeSdk.value.addAccount(account, { select: true })
 
-      await client.addAccount(account, {select: true})
-      sdk = client
-
-      walletStatus.value = 'connected'
       await fetchAccountInfo()
     } else {
       // connect to Superhero Wallet
-      sdk = new AeSdkAepp({
+      // AeSdkAepp instance can't be in deep reactive https://stackoverflow.com/a/69010240
+      aeSdk.value = shallowReactive(new AeSdkAepp({
         name: 'AEPP',
-        nodes,
-        compilerUrl: process.env.COMPILER_URL,
-        onNetworkChange: async ({ networkId }) => {
+        ...aeSdkOptions,
+        async onNetworkChange({ networkId }) {
           await connectToNode(networkId)
         },
-        onAddressChange: async (addresses) => {
-          console.info('onAddressChange :: ', addresses)
+        async onAddressChange(addresses) {
+          console.info('onAddressChange ::', addresses)
           await fetchAccountInfo()
         },
-      })
+      }))
       await scanForWallets()
     }
   } catch (error) {
-    walletStatus.value = 'failed';
+    status.value = 'failed';
     throw error;
   }
 }
 
 const scanForWallets = async () => {
-  const { walletStatus, activeWallet } = toRefs(wallet)
-  walletStatus.value = 'scanning'
+  const { status, walletInfo, aeSdk } = toRefs(state)
+  status.value = 'scanning'
 
   const foundWallet = await new Promise((resolve) => {
     const handleWallets = async ({ newWallet }) => {
@@ -84,29 +79,28 @@ const scanForWallets = async () => {
     const stopScan = walletDetector(scannerConnection, handleWallets)
   });
 
-  activeWallet.value = foundWallet
-  const { networkId } = await sdk.connectToWallet(foundWallet.getConnection())
-  await sdk.subscribeAddress('subscribe', 'current')
-  await connectToNode(networkId)
+  walletInfo.value = await aeSdk.value.connectToWallet(foundWallet.getConnection())
+  await aeSdk.value.subscribeAddress('subscribe', 'current')
+  await connectToNode(walletInfo.value.networkId)
 }
 
 const fetchAccountInfo = async () => {
-  const { address, balance, walletStatus } = toRefs(wallet)
-  walletStatus.value = 'fetching_info'
-  address.value = await sdk.address()
-  balance.value = await sdk.getBalance(address.value, {
+  const { address, balance, status } = toRefs(state)
+  status.value = 'fetching_info'
+  address.value = await state.aeSdk.address()
+  balance.value = await state.aeSdk.getBalance(address.value, {
     format: AE_AMOUNT_FORMATS.AE,
   })
-  walletStatus.value = 'connected'
+  state.status = 'connected'
 }
 
 const connectToNode = async (selectedNetworkId) => {
-  const { networkId, walletStatus } = toRefs(wallet)
+  const { networkId, status, aeSdk } = toRefs(state)
   if (selectedNetworkId !== process.env.VUE_APP_NETWORK_ID) {
-    walletStatus.value = `Connected to wrong network. Please switch to ${process.env.VUE_APP_NETWORK_NAME} in your wallet.`
+    status.value = `failed: Connected to wrong network. Please switch to ${process.env.VUE_APP_NETWORK_NAME} in your wallet.`
     return
   }
   networkId.value = selectedNetworkId
-  sdk.selectNode(selectedNetworkId)
+  aeSdk.value.selectNode(selectedNetworkId)
   await fetchAccountInfo()
 }

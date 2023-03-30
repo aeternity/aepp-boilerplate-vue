@@ -1,13 +1,13 @@
 <template>
   <div class="wallet">
-    <template v-if="walletStatus">
-      <strong>Wallet Status :: </strong> {{ walletStatus }}
+    <template v-if="status">
+      <strong>Wallet Status :: </strong> {{ status }}
       <br/>
     </template>
 
-    <template v-if="address && walletStatus === 'connected'">
-      <template v-if="activeWallet">
-        <strong>Provider :: </strong> {{ activeWallet.info.name }}
+    <template v-if="status === 'connected'">
+      <template v-if="walletInfo">
+        <strong>Provider :: </strong> {{ walletInfo.name }}
         <br/>
       </template>
       <strong>Network ID :: </strong> {{ networkId }}
@@ -18,7 +18,7 @@
     </template>
 
     <img
-      v-else
+      v-if="!['connected', 'failed'].includes(status.split(/\W/)[0])"
       src="../assets/loading_logo.svg"
       style="width: 50px"
     />
@@ -26,15 +26,13 @@
 </template>
 
 <script>
-import { defineComponent, toRefs } from 'vue'
-import { wallet } from '../utils/aeternity/wallet'
+import { defineComponent } from 'vue'
+import { state } from '../utils/aeternity/wallet'
 
 export default defineComponent({
   name: 'WalletInfo',
   setup () {
-    const { address, balance, walletStatus, activeWallet, networkId } = toRefs(wallet)
-
-    return { address, balance, walletStatus, activeWallet, networkId }
+    return state
   }
 })
 </script>
