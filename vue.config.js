@@ -1,16 +1,14 @@
-module.exports = {
-  transpileDependencies: [
-    '@aeternity'
-  ],
-  // added file-loader
-  chainWebpack: config => {
-    // .aes loader
-    config.module
-      .rule('aes')
-      .test(/\.aes$/)
-      .use('file-loader')
-      .loader('file-loader')
-      .end()
-  }
+const { defineConfig } = require('@vue/cli-service');
 
-}
+module.exports = defineConfig({
+  configureWebpack: {
+    module: {
+      rules: [{
+        test: /\.aes$/,
+        use: {
+          loader: '@aeternity/contract-builder',
+        },
+      }],
+    },
+  },
+});
