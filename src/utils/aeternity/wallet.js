@@ -77,11 +77,22 @@ const scanForWallets = async () => {
   });
 
   walletInfo.value = await aeSdk.value.connectToWallet(foundWallet.getConnection())
+  status.value = 'asking_account_access'
   await aeSdk.value.subscribeAddress('subscribe', 'current')
-  await connectToNode(walletInfo.value.networkId)
+  await fetchAccountInfo()
+}
+
+const isSupportedNetwork = () => {
+  const { networkId, status } = toRefs(state)
+  const res = networkId.value === process.env.VUE_APP_NETWORK_ID
+  if (!res) {
+    status.value = `failed: Connected to wrong network. Please switch to ${process.env.VUE_APP_NETWORK_NAME} in your wallet.`
+  }
+  return res
 }
 
 const fetchAccountInfo = async () => {
+  if (!isSupportedNetwork()) return;
   const { balance, status } = toRefs(state)
   status.value = 'fetching_info'
   balance.value = await state.aeSdk.getBalance(state.aeSdk.address, {
@@ -91,12 +102,9 @@ const fetchAccountInfo = async () => {
 }
 
 const connectToNode = async (selectedNetworkId) => {
-  const { networkId, status, aeSdk } = toRefs(state)
-  if (selectedNetworkId !== process.env.VUE_APP_NETWORK_ID) {
-    status.value = `failed: Connected to wrong network. Please switch to ${process.env.VUE_APP_NETWORK_NAME} in your wallet.`
-    return
-  }
+  const { networkId, aeSdk } = toRefs(state)
   networkId.value = selectedNetworkId
+  if (!isSupportedNetwork()) return
   aeSdk.value.selectNode(selectedNetworkId)
-  await fetchAccountInfo()
+  if (aeSdk.value.addresses().length) await fetchAccountInfo()
 }
