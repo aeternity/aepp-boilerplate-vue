@@ -8,128 +8,103 @@ import {
   MemoryAccount,
 } from '@aeternity/aepp-sdk'
 
-import { reactive, toRefs } from 'vue'
-import { COMPILER_URL } from './configs'
+import { reactive, toRefs, shallowReactive } from 'vue'
 
-export let sdk = null
-
-export const wallet = reactive({
-  activeWallet: null,
-  address: null,
+export const state = reactive({
+  walletInfo: null,
+  aeSdk: null,
   balance: null,
-  walletStatus: null,
-  isStatic: false,
-  networkId: null,
+  status: 'connecting',
+  networkId: process.env.VUE_APP_NETWORK_ID,
 })
 
 export const initWallet = async () => {
-  const { walletStatus } = toRefs(wallet)
-
-  const nodes = [{
-    name: process.env.VUE_APP_TYPE,
-    instance: new Node(process.env.VUE_APP_URL),
-  }]
-
-  walletStatus.value = 'connecting'
+  const { status, aeSdk } = toRefs(state)
 
   try {
-    const { VUE_APP_WALLET_SECRET_KEY, VUE_APP_WALLET_PUBLIC_KEY } = process.env
+    const aeSdkOptions = {
+      nodes: [{
+        name: process.env.VUE_APP_NETWORK_ID,
+        instance: new Node(process.env.VUE_APP_NODE_URL),
+      }],
+      compilerUrl: process.env.COMPILER_URL,
+    }
+
     // connect to static Wallet
-    if (VUE_APP_WALLET_SECRET_KEY && VUE_APP_WALLET_PUBLIC_KEY) {
-      const account = new MemoryAccount({
-        keypair: { secretKey: VUE_APP_WALLET_SECRET_KEY, publicKey: VUE_APP_WALLET_PUBLIC_KEY },
-      })
+    if (process.env.VUE_APP_WALLET_SECRET_KEY) {
+      const account = new MemoryAccount(process.env.VUE_APP_WALLET_SECRET_KEY)
 
-      const client = new AeSdk({
-        compilerUrl: COMPILER_URL,
-        nodes,
-      })
+      // AeSdk instance can't be in deep reactive https://stackoverflow.com/a/69010240
+      aeSdk.value = shallowReactive(new AeSdk({
+        ...aeSdkOptions,
+        accounts: [account],
+      }))
 
-      await client.addAccount(account, {select: true})
-      sdk = client
-
-      walletStatus.value = 'connected'
-      await fetchWalletInfo(client)
+      await fetchAccountInfo()
     } else {
       // connect to Superhero Wallet
-      sdk = new AeSdkAepp({
+      // AeSdkAepp instance can't be in deep reactive https://stackoverflow.com/a/69010240
+      aeSdk.value = shallowReactive(new AeSdkAepp({
         name: 'AEPP',
-        nodes,
-        compilerUrl: COMPILER_URL,
-        onNetworkChange: async ({ networkId }) => {
-          await aeConnectToNode(networkId)
+        ...aeSdkOptions,
+        async onNetworkChange({ networkId }) {
+          await connectToNode(networkId)
         },
-        onAddressChange: async (addresses) => {
-          console.info('onAddressChange :: ', addresses)
-          await fetchWalletInfo()
+        async onAddressChange(addresses) {
+          console.info('onAddressChange ::', addresses)
+          await fetchAccountInfo()
         },
-      })
+      }))
       await scanForWallets()
     }
   } catch (error) {
-    console.info('initWallet . error: ', error)
-    return false
+    status.value = 'failed';
+    throw error;
   }
-  return true
 }
 
-export const scanForWallets = async () => {
-  const { walletStatus, activeWallet } = toRefs(wallet)
+const scanForWallets = async () => {
+  const { status, walletInfo, aeSdk } = toRefs(state)
+  status.value = 'scanning'
 
-  walletStatus.value = 'scanning'
-
-  return new Promise((resolve) => {
-    const handleWallets = async ({ wallets, newWallet }) => {
-      newWallet = newWallet || Object.values(wallets)[0]
+  const foundWallet = await new Promise((resolve) => {
+    const handleWallets = async ({ newWallet }) => {
       stopScan()
-      if (!sdk) return
-
-      activeWallet.value = newWallet
-
-      const { networkId } = await sdk.connectToWallet(newWallet.getConnection())
-      await sdk.subscribeAddress('subscribe', 'current')
-
-      await aeConnectToNode(networkId)
-
-
-      resolve()
+      resolve(newWallet)
     }
     const scannerConnection = new BrowserWindowMessageConnection()
     const stopScan = walletDetector(scannerConnection, handleWallets)
+  });
+
+  walletInfo.value = await aeSdk.value.connectToWallet(foundWallet.getConnection())
+  status.value = 'asking_account_access'
+  await aeSdk.value.subscribeAddress('subscribe', 'current')
+  await fetchAccountInfo()
+}
+
+const isSupportedNetwork = () => {
+  const { networkId, status } = toRefs(state)
+  const res = networkId.value === process.env.VUE_APP_NETWORK_ID
+  if (!res) {
+    status.value = `failed: Connected to wrong network. Please switch to ${process.env.VUE_APP_NETWORK_NAME} in your wallet.`
+  }
+  return res
+}
+
+const fetchAccountInfo = async () => {
+  if (!isSupportedNetwork()) return;
+  const { balance, status } = toRefs(state)
+  status.value = 'fetching_info'
+  balance.value = await state.aeSdk.getBalance(state.aeSdk.address, {
+    format: AE_AMOUNT_FORMATS.AE,
   })
+  state.status = 'connected'
 }
 
-export const fetchWalletInfo = async () => {
-  const { address, balance, walletStatus } = toRefs(wallet)
-
-  walletStatus.value = 'fetching_info'
-
-  try {
-    address.value = await sdk.address()
-
-    balance.value = await sdk.getBalance(address.value, {
-      format: AE_AMOUNT_FORMATS.AE,
-    })
-    walletStatus.value = 'connected'
-    return true
-  } catch (error) {
-    walletStatus.value = 'fetching failed'
-    console.info('fetchWalletInfo error::', error)
-    return false
-  }
+const connectToNode = async (selectedNetworkId) => {
+  const { networkId, aeSdk } = toRefs(state)
+  networkId.value = selectedNetworkId
+  if (!isSupportedNetwork()) return
+  aeSdk.value.selectNode(selectedNetworkId)
+  if (aeSdk.value.addresses().length) await fetchAccountInfo()
 }
-
-export const aeConnectToNode = async (selectedNetworkId) => {
-  const { networkId, walletStatus } = toRefs(wallet)
-  const defaultNetworkId = process.env.VUE_APP_TYPE
-  if (selectedNetworkId === defaultNetworkId) {
-    networkId.value = selectedNetworkId
-    sdk.selectNode(selectedNetworkId)
-    await fetchWalletInfo()
-  } else {
-    walletStatus.value = `Connected to wrong network. Please switch to ${process.env.VUE_APP_NAME} in your wallet.`
-    networkId.value = defaultNetworkId
-    sdk.selectNode(defaultNetworkId)
-  }
-}
-

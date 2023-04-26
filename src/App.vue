@@ -13,7 +13,7 @@
 
 <script>
 import { defineComponent, onMounted } from 'vue'
-import { initWallet } from './utils/aeternity'
+import { initWallet } from './utils/aeternity/wallet'
 
 export default defineComponent({
   name: 'App',
