@@ -1,0 +1,4 @@
+contract Multiplier =
+  record state = { factor: int }
+  entrypoint init(f : int) : state = { factor = f }
+  entrypoint calc(x : int) = x * state.factor

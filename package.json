@@ -17,6 +17,7 @@
     "vue-router": "^4.1.6"
   },
   "devDependencies": {
+    "@aeternity/contract-builder": "^0.1.0",
     "@babel/core": "^7.21.3",
     "@babel/eslint-parser": "^7.21.3",
     "@vue/cli-plugin-babel": "~5.0.8",

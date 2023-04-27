@@ -4,7 +4,7 @@
         <h1>Welcome To Aeternity</h1>
         <div id="nav">
             <router-link to="/">Home</router-link> |
-            <router-link to="/about">About</router-link>
+            <router-link to="/contract">Contract</router-link>
         </div>
     </div>
 
