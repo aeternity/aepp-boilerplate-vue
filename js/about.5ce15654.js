@@ -1,0 +1,2 @@
+"use strict";(self["webpackChunkaepp_boilerplate_vue"]=self["webpackChunkaepp_boilerplate_vue"]||[]).push([[443],{3991:function(e,n,t){t.r(n),t.d(n,{default:function(){return i}});var u=t(6252);const a={class:"about"},o=(0,u._)("h1",null,"About Page",-1);function l(e,n,t,l,r,c){const p=(0,u.up)("WalletInfo");return(0,u.wg)(),(0,u.iD)("div",a,[o,(0,u.Wm)(p)])}var r=t(6414),c={name:"AboutView",components:{WalletInfo:r.Z}},p=t(3744);const s=(0,p.Z)(c,[["render",l]]);var i=s}}]);
+//# sourceMappingURL=about.5ce15654.js.map
