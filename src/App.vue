@@ -1,27 +1,31 @@
 <template>
-    <div id="container">
-        <img alt="Aeternity" src="./assets/logo.svg" style="width: 250px" />
-        <h1>Welcome To Aeternity</h1>
-        <div id="nav">
-            <router-link to="/">Home</router-link> |
-            <router-link to="/about">About</router-link>
-        </div>
+  <div id="container">
+    <img alt="Aeternity" src="./assets/logo.svg" style="width: 250px"/>
+    <h1>Welcome To Aeternity</h1>
+    <div id="nav">
+      <router-link to="/">Home</router-link>
+      <router-link to="/about">About</router-link>
     </div>
+    <button @click="init()">Init Manually</button>
+  </div>
 
-    <router-view />
+  <router-view/>
 </template>
 
 <script>
-import { defineComponent, onMounted } from 'vue'
+import { defineComponent, } from 'vue'
 import { initWallet } from './utils/aeternity/wallet'
 
 export default defineComponent({
   name: 'App',
-
-  setup () {
-    onMounted(async () => {
+  setup() {
+    async function init() {
       await initWallet()
-    })
+    }
+
+    return {
+      init
+    }
   }
 })
 </script>
