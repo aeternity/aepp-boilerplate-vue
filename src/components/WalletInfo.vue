@@ -7,16 +7,16 @@
 
     <template v-if="status === 'connected'">
       <template v-if="walletInfo">
-        <strong>Provider :: </strong> {{ walletInfo.name }}
+        <strong>Provider :: </strong> {{ walletInfo?.name }}
         <br/>
       </template>
       <strong>Network ID :: </strong> {{ networkId }}
         <br/>
-      <strong>Address :: </strong> <span class="wallet-address">{{ aeSdk.address }}</span>
+      <strong>Address :: </strong> <span class="wallet-address">{{ aeSdk?.address }}</span>
       <br/>
       <strong>Balance :: </strong> {{ balance }} AE
     </template>
-
+    <button @click="disconnect()">Disconnect</button>
     <img
       v-if="!['connected', 'failed'].includes(status.split(/\W/)[0])"
       src="../assets/loading_logo.svg"

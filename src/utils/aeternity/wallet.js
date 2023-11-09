@@ -10,16 +10,24 @@ import {
 
 import { reactive, toRefs, shallowReactive } from 'vue'
 
+
+const disconnect = () => {
+  const { aeSdk } = toRefs(state)
+  aeSdk.value.disconnectWallet()
+}
+
+
 export const state = reactive({
   walletInfo: null,
   aeSdk: null,
   balance: null,
   status: 'connecting',
   networkId: process.env.VUE_APP_NETWORK_ID,
+  disconnect
 })
 
 export const initWallet = async () => {
-  const { status, aeSdk } = toRefs(state)
+  const { status, aeSdk, balance, walletInfo } = toRefs(state)
 
   try {
     const aeSdkOptions = {
@@ -54,6 +62,12 @@ export const initWallet = async () => {
           console.info('onAddressChange ::', addresses)
           await fetchAccountInfo()
         },
+        onDisconnect() {
+          aeSdk.value = null
+          walletInfo.value = null
+          balance.value = null
+          status.value = 'disconnected'
+        }
       }))
       await scanForWallets()
     }
